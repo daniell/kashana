@@ -66,7 +66,7 @@ class SendActivationEmailView(ActivationEmailsView):
         return reverse("contact_update", args=[self.pk])
 
     def get_subject(self):
-        return "Please activate your {0} account".format(settings.SITE_NAME)
+        return "{0} account activation".format(settings.SITE_NAME)
 
     def send_email(self, request, pk):
         obj = get_object_or_404(User, pk=pk)

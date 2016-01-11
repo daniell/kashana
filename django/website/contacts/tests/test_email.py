@@ -87,4 +87,4 @@ def test_new_contact_activation_email(rf):
         assert len(mail.outbox) == 1
         email = mail.outbox[0]
         assert email.to[0] == u.business_email
-        assert email.subject == 'Please activate your {0} account'.format(settings.SITE_NAME)
+        assert email.subject == '{0} account activation'.format(settings.SITE_NAME)

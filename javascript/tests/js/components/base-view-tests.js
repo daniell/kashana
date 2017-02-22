@@ -40,7 +40,7 @@ define(['views/base_view'], function (baseView) {
             expect(tv.el.firstChild.innerHTML).toEqual("Changed test");
         });
         
-        it("Test amphersands only escaped once", function() {
+        it("Test ampersands only escaped once", function() {
         	 var test_model = new Backbone.Model({name: "Test &"}),
              TestView = baseView.extend({
                  template_selector: "#milestone-table-heading",

@@ -15218,8 +15218,10 @@ define('views/base_view',[
             // Add global values
             data.editable = this.is_editable;
             data.level_name = Aptivate.data.levels[data.level];
-
-            this.$el.html(template(data));
+            // Fix a bug where ampersands are sometimes escaped twice
+            var output = template(data);
+            output = output.replace("&amp;amp;", "&amp;");
+            this.$el.html(output);
             if (this.postRender) {
                 this.postRender();
             }

@@ -39,5 +39,18 @@ define(['views/base_view'], function (baseView) {
             since("Rendered element contains getTemplateData changes");
             expect(tv.el.firstChild.innerHTML).toEqual("Changed test");
         });
+        
+        it("Test amphersands only escaped once", function() {
+        	 var test_model = new Backbone.Model({name: "Test &"}),
+             TestView = baseView.extend({
+                 template_selector: "#milestone-table-heading",
+                 el: "#qunit-fixture",
+             }), tv;
+        	 
+        	 tv = new TestView({model: test_model});
+        	 tv.render();
+        	 
+        	 expect(tv.el.firstChild.innerHTML).toEqual("Test &amp;");
+        })
     });
 });

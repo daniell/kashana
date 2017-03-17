@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+from django.conf import settings
 
 
 def set_default_organisation_owner(apps, schema_editor):
@@ -23,7 +24,7 @@ def add_existing_users_to_default_organization(apps, schema_editor):
     OrganizationUser = apps.get_model('organizations', 'OrganizationUser')
     User = apps.get_model('contacts', 'User')
     if Organization.objects.exists():
-        default_org = Organization.objects.get(name='Default Org')
+        default_org = Organization.objects.get(name=settings.DEFAULT_ORGANIZATION_NAME)
     else:
         default_org = False
     if default_org:

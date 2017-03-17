@@ -219,6 +219,18 @@ class DeleteContactTests(TestCase):
         self.assertEqual(view.permission_required, 'contacts.delete_user')
         self.assertTrue(view.raise_exception)
 
+    @pytest.mark.django_db
+    def test_delete_removes_user_from_organization(self):
+        view = DeleteContact()
+        org_user = OrganizationUserFactory()
+        organization = org_user.organization
+        user = org_user.user
+        assert organization in user.organizations_organization.all()
+        view.kwargs = {'org_slug': organization.slug, 'pk': user.pk}
+
+        request = RequestFactory().get('/')
+        view.delete(request)
+        assert organization not in user.organizations_organization.all()
 
 class UpdateContactTests(TestCase):
     def test_has_expected_permissions_properties(self):
@@ -285,8 +297,6 @@ def test_no_search_term_results_in_empty_query_in_context(rf):
 
 
 def create_contact_list():
-    # Orgnaizations slugs are set this way because, for some reason, doing it
-    # other ways results in tests failing.
     return [OrganizationUserFactory(org_slug='test').user for _ in range(3)]
 
 

@@ -56,6 +56,8 @@ class OrganizationUserFactory(factory.django.DjangoModelFactory):
 
     @classmethod
     def _generate(cls, create, attrs):
+        # Organizations slugs are set this way because, for some reason, doing it
+        # other ways results in tests failing.
         org_slug = attrs.pop('org_slug', False)
         organization = Organization.objects.first() if Organization.objects.exists() else OrganizationFactory()
         if org_slug:

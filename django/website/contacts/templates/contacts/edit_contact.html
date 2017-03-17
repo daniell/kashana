@@ -38,7 +38,7 @@
         </fieldset>
     </form>
     {% if object and perms.contacts.delete_user %}
-    <p>{% url "contact_delete" object.id as delete_url %}
+    <p>{% url "contact_delete" request.user.preferences.last_viewed_logframe.slug object.id as delete_url %}
     {% blocktrans %}You can also <a href="{{ delete_url }}">delete this contact</a>.{% endblocktrans %}
     </p>
     {% endif %}

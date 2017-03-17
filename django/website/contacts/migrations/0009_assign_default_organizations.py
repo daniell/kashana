@@ -11,7 +11,7 @@ def set_default_organisation_owner(apps, schema_editor):
     OrganizationUser = apps.get_model('organizations', 'OrganizationUser')
     User = apps.get_model('contacts', 'User')
     if User.objects.exists():
-        default_org = Organization.objects.get(name='Default Org')
+        default_org = Organization.objects.get(name=settings.DEFAULT_ORGANIZATION_NAME)
         user = User.objects.order_by('id')[0]
         org_user = OrganizationUser.objects.get(user=user, organization=default_org)
         org_user.is_admin = True

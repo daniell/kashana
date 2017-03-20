@@ -4,6 +4,7 @@ from random import randint
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.test.client import RequestFactory
 from django_tables2 import SingleTableMixin
@@ -257,7 +258,7 @@ class UpdatePersonalInfoTests(TestCase):
     def test_get_object_returns_request_user(self):
         view = UpdatePersonalInfo()
         request = RequestFactory()
-        request.user = UserFactory.build()
+        request.user = UserFactory()
         view.request = request
         self.assertEqual(view.get_object(), request.user)
 
@@ -467,21 +468,30 @@ def test_deleting_user_removes_them_from_organization():
     assert not OrganizationUser.objects.filter(pk=org_user.pk).exists()
 
 
-@pytest.mark.django_db
-def test_deleting_user_doesnt_delete_them_enitrely():
-    org_user = OrganizationUserFactory()
-    user = org_user.user
-    organization = org_user.organization
-
-    OrganizationUserFactory(user=user, organization=OrganizationFactory())
-
+def setup_delete_view(user, organization):
     view = DeleteContact()
     view.kwargs = {'pk': user.pk, 'org_slug': organization.slug}
 
     request = RequestFactory().post('/')
     request.user = UserFactory()
 
-    view.delete(request)
+    view.request = request
+
+    return view
+
+
+@pytest.mark.django_db
+def test_deleting_user_doesnt_delete_them_enitrely():
+    org_user = OrganizationUserFactory()
+    user = org_user.user
+    organization = org_user.organization
+
+    # The user should have more than one organization left to avoid being
+    # deleted
+    OrganizationUserFactory(user=user, organization=OrganizationFactory())
+
+    view = setup_delete_view(user, organization)
+    view.delete(view.request)
 
     assert User.objects.filter(pk=user.pk).exists()
 
@@ -492,12 +502,21 @@ def test_user_with_no_organizations_gets_deleted():
     user = org_user.user
     organization = org_user.organization
 
-    view = DeleteContact()
-    view.kwargs = {'pk': user.pk, 'org_slug': organization.slug}
-
-    request = RequestFactory().post('/')
-    request.user = UserFactory()
-
-    view.delete(request)
+    view = setup_delete_view(user, organization)
+    view.delete(view.request)
 
     assert not User.objects.filter(pk=user.pk).exists()
+
+
+@pytest.mark.django_db
+def test_users_that_can_create_organizations_arent_deleted_when_leaving_last_org():
+    org_user = OrganizationUserFactory()
+    user = org_user.user
+    add_organizations_permission = Permission.objects.get(codename='add_organization')
+    user.user_permissions.add(add_organizations_permission)
+    organization = org_user.organization
+
+    view = setup_delete_view(user, organization)
+    view.delete(view.request)
+
+    assert User.objects.filter(pk=user.pk).exists()

@@ -144,7 +144,7 @@ class DeleteContact(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         response = DeleteView.delete(self, request, *args, **kwargs)
 
-        if not self.object.user.organizations_organization.exists():
+        if not self.object.user.organizations_organization.exists() and not self.object.user.has_perm('organizations.add_organization'):
             self.object.user.delete()
 
         return response

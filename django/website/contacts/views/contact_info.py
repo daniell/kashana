@@ -1,13 +1,14 @@
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from django.http.response import HttpResponseRedirect
 from django.views.generic import (
     CreateView, UpdateView, DeleteView, ListView,
 )
 
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 from django_tables2 import SingleTableMixin
-from organizations.models import Organization
+from organizations.models import Organization, OrganizationUser
 from spreadsheetresponsemixin.views import SpreadsheetResponseMixin
 
 from ..models import User
@@ -16,7 +17,6 @@ from ..forms import (
     UpdatePersonalInfoForm
 )
 from ..tables import UserTable
-from django.http.response import HttpResponseRedirect
 
 
 class ListContacts(LoginRequiredMixin, PermissionRequiredMixin,
@@ -134,12 +134,17 @@ class UpdatePersonalInfo(UpdateContactBase):
 
 
 class DeleteContact(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-    model = User
+    model = OrganizationUser
     template_name = 'contacts/delete_contact.html'
     form_class = DeleteContactForm
     # Group required
     permission_required = 'contacts.delete_user'
     raise_exception = True
+
+    def get_object(self, queryset=None):
+        organization = Organization.objects.get(slug=self.kwargs['org_slug'])
+        user = User.objects.get(pk=self.kwargs['pk'])
+        return self.model.objects.get(organization=organization, user=user)
 
     def get_success_url(self):
         return reverse('contact_list', args=[self.kwargs['org_slug']])

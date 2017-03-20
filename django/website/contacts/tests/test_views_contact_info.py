@@ -232,6 +232,7 @@ class DeleteContactTests(TestCase):
         view.delete(request)
         assert organization not in user.organizations_organization.all()
 
+
 class UpdateContactTests(TestCase):
     def test_has_expected_permissions_properties(self):
         view = UpdateContact()
@@ -387,8 +388,8 @@ def test_update_contact_view_with_valid_form_redirects_to_self():
 
 @pytest.mark.django_db
 def test_existing_user_is_used_if_one_is_found():
-    user = G(User)
-    organization = G(Organization)
+    user = UserFactory()
+    organization = OrganizationFactory()
     organization.slug = 'test'
     organization.save()
     form_data = {
@@ -411,7 +412,7 @@ def test_existing_user_is_used_if_one_is_found():
 
 @pytest.mark.django_db
 def test_user_details_arent_changed_if_user_is_found():
-    user = G(User)
+    user = UserFactory()
 
     original_data = {
         'business_email': user.business_email,
@@ -447,3 +448,37 @@ def test_user_details_arent_changed_if_user_is_found():
         'is_active': view.object.is_active,
     }
     assert original_data == final_data
+
+
+@pytest.mark.django_db
+def test_deleting_user_removes_them_from_organization():
+    org_user = OrganizationUserFactory()
+    user = org_user.user
+    organization = org_user.organization
+
+    view = DeleteContact()
+    view.kwargs = {'pk': user.pk, 'org_slug': organization.slug}
+
+    request = RequestFactory().post('/')
+    request.user = UserFactory()
+
+    view.delete(request)
+
+    assert not OrganizationUser.objects.filter(pk=org_user.pk).exists()
+
+
+@pytest.mark.django_db
+def test_deleting_user_doesnt_delete_them_enitrely():
+    org_user = OrganizationUserFactory()
+    user = org_user.user
+    organization = org_user.organization
+
+    view = DeleteContact()
+    view.kwargs = {'pk': user.pk, 'org_slug': organization.slug}
+
+    request = RequestFactory().post('/')
+    request.user = UserFactory()
+
+    view.delete(request)
+
+    assert User.objects.filter(pk=user.pk).exists()

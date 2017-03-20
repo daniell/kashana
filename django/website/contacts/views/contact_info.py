@@ -16,6 +16,7 @@ from ..forms import (
     UpdatePersonalInfoForm
 )
 from ..tables import UserTable
+from django.http.response import HttpResponseRedirect
 
 
 class ListContacts(LoginRequiredMixin, PermissionRequiredMixin,
@@ -82,11 +83,14 @@ class AddContact(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return reverse('contact_update', args=(self.object.id,))
 
     def form_valid(self, form):
-        self.object = form.save()
-        self.object.set_unusable_password()
-        self.object.save()
+        if self.model.objects.filter(business_email__iexact=form.cleaned_data['business_email']).exists():
+            self.object = self.model.objects.get(business_email=form.cleaned_data['business_email'])
+        else:
+            self.object = form.save()
+            self.object.set_unusable_password()
+            self.object.save()
         self.add_user_to_organization(user=self.object, organization=Organization.objects.get(slug=self.kwargs['org_slug']))
-        return super(AddContact, self).form_valid(form)
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class UpdateContactBase(LoginRequiredMixin, UpdateView):

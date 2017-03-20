@@ -156,7 +156,7 @@ class AddContactTests(TestCase):
         self.view.kwargs = {'org_slug': 'test'}
         self.form = mock.Mock(spec=AddContactForm)
         self.form.save = mock.Mock(return_value=mock.Mock(id=1))
-        self.form.cleaned_data = {}
+        self.form.cleaned_data = {'business_email': 'test@example.com'}
 
     def test_has_expected_permissions_properties(self):
         self.assertEqual(self.view.permission_required, 'contacts.add_user')
@@ -370,7 +370,7 @@ def test_update_contact_view_with_valid_form_saves_object():
     view.request = RequestFactory().post('/', {})
     view.kwargs = {'org_slug': 'test'}
     view.object = mock.Mock(save=mock.Mock())
-    view.form_valid(mock.Mock(save=lambda: mock.Mock(id=randint(1, 100))))
+    view.form_valid(mock.Mock(save=lambda: mock.Mock(cleaned_data={'business_email': 'test@example.com'}, id=randint(1, 100))))
 
     assert view.object.save.called
 
@@ -380,6 +380,70 @@ def test_update_contact_view_with_valid_form_redirects_to_self():
     view = UpdateContact()
     view.request = RequestFactory().post('/', {})
     view.object = mock.Mock(save=mock.Mock())
-    response = view.form_valid(mock.Mock(save=lambda: mock.Mock(id=CONTACT_ID)))
+    response = view.form_valid(mock.Mock(cleaned_data={'business_email': 'test@example.com'}, save=lambda: mock.Mock(id=CONTACT_ID)))
 
     assert reverse('contact_update', args=[CONTACT_ID]) == response['Location']
+
+
+@pytest.mark.django_db
+def test_existing_user_is_used_if_one_is_found():
+    user = G(User)
+    organization = G(Organization)
+    organization.slug = 'test'
+    organization.save()
+    form_data = {
+        'business_email': user.business_email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'is_active': user.is_active,
+    }
+
+    request = RequestFactory().post('/', data=form_data)
+    request.user = User()
+
+    view = AddContact()
+    view.request = request
+    view.kwargs = {'org_slug': 'test'}
+
+    view.form_valid(mock.Mock(cleaned_data={'business_email': user.business_email}))
+    assert user == view.object
+
+
+@pytest.mark.django_db
+def test_user_details_arent_changed_if_user_is_found():
+    user = G(User)
+
+    original_data = {
+        'business_email': user.business_email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'is_active': user.is_active,
+    }
+
+    organization = G(Organization)
+    organization.slug = 'test'
+    organization.save()
+
+    form_data = {
+        'business_email': user.business_email,
+        'first_name': user.first_name + " CHANGED",
+        'last_name': user.last_name + " CHANGED",
+        'is_active': not user.is_active,
+    }
+
+    request = RequestFactory().post('/', data=form_data)
+    request.user = User()
+
+    view = AddContact()
+    view.request = request
+    view.kwargs = {'org_slug': 'test'}
+
+    view.form_valid(mock.Mock(cleaned_data={'business_email': user.business_email}))
+
+    final_data = {
+        'business_email': view.object.business_email,
+        'first_name': view.object.first_name,
+        'last_name': view.object.last_name,
+        'is_active': view.object.is_active,
+    }
+    assert original_data == final_data

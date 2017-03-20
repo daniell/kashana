@@ -141,6 +141,14 @@ class DeleteContact(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     permission_required = 'contacts.delete_user'
     raise_exception = True
 
+    def delete(self, request, *args, **kwargs):
+        response = DeleteView.delete(self, request, *args, **kwargs)
+
+        if not self.object.user.organizations_organization.exists():
+            self.object.user.delete()
+
+        return response
+
     def get_object(self, queryset=None):
         organization = Organization.objects.get(slug=self.kwargs['org_slug'])
         user = User.objects.get(pk=self.kwargs['pk'])

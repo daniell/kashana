@@ -473,6 +473,8 @@ def test_deleting_user_doesnt_delete_them_enitrely():
     user = org_user.user
     organization = org_user.organization
 
+    OrganizationUserFactory(user=user, organization=OrganizationFactory())
+
     view = DeleteContact()
     view.kwargs = {'pk': user.pk, 'org_slug': organization.slug}
 
@@ -482,3 +484,20 @@ def test_deleting_user_doesnt_delete_them_enitrely():
     view.delete(request)
 
     assert User.objects.filter(pk=user.pk).exists()
+
+
+@pytest.mark.django_db
+def test_user_with_no_organizations_gets_deleted():
+    org_user = OrganizationUserFactory()
+    user = org_user.user
+    organization = org_user.organization
+
+    view = DeleteContact()
+    view.kwargs = {'pk': user.pk, 'org_slug': organization.slug}
+
+    request = RequestFactory().post('/')
+    request.user = UserFactory()
+
+    view.delete(request)
+
+    assert not User.objects.filter(pk=user.pk).exists()

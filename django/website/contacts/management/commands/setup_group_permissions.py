@@ -1,13 +1,13 @@
-from django.core.management.base import NoArgsCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError
 from contacts.group_permissions import GroupPermissions
 from django.core.exceptions import ObjectDoesNotExist
 
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     help = """Sets up groups and their associated permissions.
     See group_permissions.py"""
 
-    def handle_noargs(self, **options):
+    def handle(self, **options):
         verbose = int(options.get('verbosity', 1)) > 1
         try:
             GroupPermissions(verbose=verbose).setup_groups_and_permissions()

@@ -22,6 +22,7 @@ def create_serializer(model_class):
         class DefaultSerializer(ModelSerializer):
             class Meta:
                 model = model_class
+                fields = '__all__'
         return DefaultSerializer
 
 
@@ -297,6 +298,7 @@ class StatusUpdateSerializer(ModelSerializer):
 
     class Meta:
         model = StatusUpdate
+        fields = '__all__'
 
 
 class StatusUpdateViewSet(FilterRelationship, viewsets.ModelViewSet):

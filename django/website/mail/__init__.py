@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 from django.core.mail import EmailMessage
-from django.template import loader, Template, Context, TemplateDoesNotExist
+from django.template import loader, Context, TemplateDoesNotExist, engines
 
 
 DEFAULT_FROM = settings.EMAIL_BOT_ADDRESS
@@ -26,11 +26,11 @@ def notify(params, fail_silently=False, connection=None):
         try:
             template = loader.get_template(template_name)
         except TemplateDoesNotExist:
-            template = Template(template_name)
-        if type(options['context']) == dict:
-            context = Context(options['context'])
-        else:
-            context = options['context']
+            engine = engines['django']
+            template = engine.from_string(template_name)
+
+        context = options['context']
+
         email_body = template.render(context)
         options['body'] = email_body
         del options['template_name']

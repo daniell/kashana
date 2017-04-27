@@ -123,7 +123,7 @@ def test_order_set_automatically_when_missing():
                ignore_fields=['parent', 'level', 'order', 'rating'])
     assert result.order == 1
 
-    result2 = G(Result, log_frame=logframe, parent=result, order=3,
+    result2 = G(Result, log_frame=logframe, parent=result,
                 ignore_fields=['level', 'order', 'rating'])
     assert result2.order == 1
 

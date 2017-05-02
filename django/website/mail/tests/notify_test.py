@@ -84,7 +84,7 @@ def params():
     return params
 
 # TODO wish it worked!
-#def test_fail_silently(params):
+# def test_fail_silently(params):
 #    fail_silently = True
 #    email = notify(params, fail_silently=fail_silently)
 #    with mock.patch('mail.EmailMessage') as email:

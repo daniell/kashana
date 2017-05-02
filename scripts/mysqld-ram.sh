@@ -12,6 +12,7 @@
 # * Disable logging
 # * Disable binary logging
 # * Possibly small memory caches in MySQL help performance here.
+
 set -o nounset
 set -o errexit
 
@@ -23,7 +24,7 @@ BIND_HOST=127.0.0.1
 BIND_PORT=3307
 
 
-DATA_DIR=/dev/shm/mysqld-ram
+DATA_DIR=/dev/shm
 PID_FILE=/var/run/mysqld/mysqld-ram.pid
 USER=mysql
 GROUP=mysql
@@ -34,7 +35,7 @@ get_bind_args() {
     # pass "server" for use with mysqld    
     host_option='--host'
     if [ ${1?"get_bind_args() needs one argument"} = "server" ]; then 
-        host_option="--bind-address"; 
+        host_option="--bind"; 
     fi
     
     args=""
@@ -84,14 +85,14 @@ if [ -f $MYSQL_APPARMOR_PROFILE ]; then
 fi
 
 # Setup the new mysql data directory
-mysqld --initialize --user $USER --datadir=$DATA_DIR > /dev/null
+mysql_install_db --user $USER --datadir=$DATA_DIR > /dev/null
 
 # Run mysqld; we need to workaround it not reacting to CTRL+C.
 # Let's setup traps to shut it down ourselves.
 trap '/usr/bin/mysqladmin $(get_bind_args client) refresh & wait' 1 # HUP
 trap '/usr/bin/mysqladmin $(get_bind_args client) shutdown & wait' 2 3 15 # INT QUIT and TERM
 # Run MySQL in the background.
-mysqld $(get_bind_args server) --datadir="$DATA_DIR" --pid-file="$PID_FILE" --console --skip-grant-tables --show_compatibility_56="ON" &
+mysqld $(get_bind_args server) --datadir="$DATA_DIR" --pid-file="$PID_FILE" --console --skip-grant-tables &
 
 # Enable apparmor again right away; it's enough that we
 # started up the mysqld without the profile.
@@ -101,7 +102,7 @@ if [ -f $MYSQL_APPARMOR_PROFILE ]; then
 fi
 
 # Wait for the MySQL background process to end.
-wait $!
+wait
 
 # Call cleanup manually
 trap - INT TERM EXIT

@@ -83,12 +83,12 @@ def params():
     params['template_name'] = 'Hello {{ var }}!'
     return params
 
-
-# def test_fail_silently(params):
+# TODO wish it worked!
+#def test_fail_silently(params):
 #    fail_silently = True
+#    email = notify(params, fail_silently=fail_silently)
 #    with mock.patch('mail.EmailMessage') as email:
 #        email.send = mock.MagicMock()
-#        notify(params, fail_silently=fail_silently)
 #        email.send.assert_called_once_with(fail_silently)
 
 

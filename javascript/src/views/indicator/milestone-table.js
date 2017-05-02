@@ -2,9 +2,9 @@ define([
     'views/base_view',
     'views/generic/list',
     'views/generic/template-list',
-    'views/editable-text',
+    'views/input_view',
     'views/indicator/target-row',
-], function (BaseView, ListView, StaticListView, EditableText, TargetRowView) {
+], function (BaseView, ListView, StaticListView, Editable, TargetRowView) {
 
     var MilestoneTableView = BaseView.extend({
 
@@ -18,18 +18,15 @@ define([
 
         subviewCreators: {
             milestoneRow: function () {
-                return new ListView({
+                return new StaticListView({
                     collection: Aptivate.logframe.milestones,
                     tagName: 'tr',
                     template_selector: "#milestone-table-heading-row",
                     attributes: { class: 'milestone-heading-row' },
-                    itemView: EditableText.extend({
+                    itemView: Editable.extend({
                         tagName: "th",
                         template_selector: "#milestone-table-heading",
                     }),
-                    newModelOptions: function () {
-                        return { logframe: Aptivate.data.logframe.id };
-                    },
                 });
             },
             subindicatorRows: function () {

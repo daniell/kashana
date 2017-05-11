@@ -1,5 +1,5 @@
 # deploy
--e git+git://github.com/daniell/dye.git@934f33a4b125df2e8ecb1e1f63f51202edabc78b#egg=dye
+-e git+git://github.com/daniell/dye.git@be6bcfda023d3db3fc8ea1770f2458c0fbadf225#egg=dye
 
 # core django (using django 1.11)
 Django>=1.11, <2.0
